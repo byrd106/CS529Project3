@@ -11,18 +11,12 @@ from sklearn.metrics import confusion_matrix
 import matplotlib.pyplot as plt
 
 
+###### kfoldsTest - runs a k fold validation test
+# 	classifier - the classifier to use for the test
+# 	k - number of spits to use for k
+# 	data - data frame of training set to split and test on 
 
-def flatten(listOfLists):
-    return list(chain.from_iterable(listOfLists))
-
-def kNormal(classifier,k,data):
-	data = readCSVToDF(data)
-	for i in data.columns.values:
-		if i != 'Class':
-			data[i] = sum(data[i])/len(data)
-	return 2
-
-def kfoldsTest(classifier,k,data,CM=False):
+def kfoldsTest(classifier,k,data):
 
 	differenceResult = {}
 	differenceResult["predictions"] = []
@@ -63,15 +57,17 @@ def kfoldsTest(classifier,k,data,CM=False):
 		#plt.figure()
 		#plot_confusion_matrix(confusion_matrix(truth,predictions),range(0,11), normalize=True)
 		#plt.show()
-		#heatmap( confusion_matrix(truth,predictions) , range(0,11))
-		#print differenceResult["predictions"]
-		#print differenceResult["predictions"],list(predictions),list(truth)
 
 		results.append(calculateAccuracy(test))
 		differenceResult["predictions"] = differenceResult["predictions"] + list(predictions)
 		differenceResult["truth"] = differenceResult["truth"] + list(truth)
 		
 	return [differenceResult,sum(results)/len(results)]
+
+
+
+###### calculateAccuracy - calculate accuracy for a given training set and predictions
+# 	data - dataframe of test set with predictions 
 
 def calculateAccuracy(data):
 		correct = float(len(data[data.prediction == data.Class]))
@@ -80,12 +76,16 @@ def calculateAccuracy(data):
 
 
 
-# def heatmap(df, dict):
-# 	fig, ax = plt.subplots()
-# 	fig.subplots_adjust(left=0.3)
-# 	#im = ax.imshow(df, interpolation='nearest', cmap=plt.cm.ocean)
-# 	print fig
-
+###### plotConfusionMatrix - plots a confusion matrix for a set of predictions and truth values
+# 
+# note, this method is a version of confusion matrix plot on this page:
+# http://scikit-learn.org/stable/auto_examples/model_selection/plot_confusion_matrix.html#sphx-glr-auto-examples-model-selection-plot-confusion-matrix-py
+#
+# 	data - dataframe of test set with predictions 
+# 	classes - the prediction classes
+# 	normalized - normalize the values in the matrix 
+# 	title - ti of the matrix 
+# 	cmap - color map to use for the matrix 
 
 def plot_confusion_matrix(cm, classes,
                           normalize=False,
@@ -101,7 +101,6 @@ def plot_confusion_matrix(cm, classes,
     else:
         print('Confusion matrix, without normalization')
 
-    #heatmap(cm)
 
     plt.imshow(cm, interpolation='nearest', cmap=cmap)
     plt.title(title)
@@ -116,21 +115,3 @@ def plot_confusion_matrix(cm, classes,
         plt.text(j, i, format(cm[i, j], fmt),
                  horizontalalignment="center",
                  color="white" if cm[i, j] > thresh else "black")
-
-    #plt.tight_layout()
-    #plt.ylabel('True label')
-    #plt.xlabel('Predicted label')
-
-
-	#print chunks
-	#for p in itertools.combinations(chunks,2):
-	#	print p
-
-	# samples = set([])
-	# lista = set(range(0,10))
-	# while()
-	# 	dataset = set(random.sample(lista,2))
-	# 	samples = samples | dataset
-	# 	lista = lista - dataset
-	# print samples
-	# print lista
