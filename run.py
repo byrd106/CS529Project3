@@ -4,7 +4,10 @@ from validation import *
 from classifier import *
 import numpy as np
 import math
+
 from sklearn import svm
+from sklearn.decomposition import PCA
+
 # librosa is required , 
 # pip install librosa
 
@@ -38,40 +41,7 @@ def program():
 		practice()
 
 	# now we need to do this^ for ever file, create a small CV system, and see if we get results\
-	#print data.shape
-	#print fs
-	# and we also need first FFT 
-	# we need 13 features per song, so average 13 coefficients over entire 4135 frames
-	# mfcc
-	#read out frames 
-	#print 0.05 * np.random.randn(2, 48000)
-	##a = np.random.randn(2, 10*48000)
-	##play(0.05 * a)
-	#play(0.05 * np.random.randn(2, 48000))
 
-def genres():
-	genres = {
-		"metal":11,
-		"blues":10,
-		"classical":9,
-		"blues":8,
-		"country":7,
-		"disco":6,
-		"hiphop":5,
-		"jazz":4,
-		"pop":3,
-		"reggae":2,
-		"rock":1
-	}
-	return genres
-
-def keyToGenre(key):
-	reverseGenres = {v: k for k, v in genres().iteritems()}
-	return reverseGenres[key]
-
-def mapKeyToInt(key):
-	ggenres = genres()
-	return ggenres[key]
 
 # creates a validation set for our features 
 def createValidation():
@@ -82,100 +52,321 @@ def createValidation():
 	first = True
 	for file in testData:
 		if first:
-			row = getF2(readAUFile(FILE_PATH+file))
+			row = twoFeatures(readAUFile(FILE_PATH+file))
 			indexList = ["id"] + range(0,len(row))
 			print file
 			results.append(indexList)
 			results.append(np.append([file],row))
 			first = False
 		else:
-			row = getF2(readAUFile(FILE_PATH+file))
+			row = twoFeatures(readAUFile(FILE_PATH+file))
 			results.append(np.append([file],row))
-	plainDataToCSV(results,"testFeatures.csv")	
-
+	plainDataToCSV(results,"testTwoFeatures.csv")	
 
 
 def createFeatures():
-	#createValidation()
-	#return 
 
-	FILE_PATH = "genres/"
-	outputDataset = []
-	dataset = getTotalDataset()
-	count = 0
-	for key in dataset.keys():
-		for row in dataset[key]:
-			
-			data = [666,667]
-			
-			if count not in data:
-				
-				#print FILE_PATH+key+"/"+row
-				row = np.append(allFeatures(readAUFile(FILE_PATH+key+"/"+row)),mapKeyToInt(key))
-				if math.isnan(float(row[1])):
-					print count
-				else:
-					outputDataset.append(row)
-			count+=1
-			#print count
-
-			#row = np.append(getF2(readAUFile(FILE_PATH+key+"/"+row)),mapKeyToInt(key))
-			#outputDataset.append(row)
+	#justMFCC, zeroCrossSumStats basicFFT zeroMFCC waveStats spectralRoll spectralRollStats
+	#createFeature(RMSE,'RMSE')
+	#createFeature(RMSEStats,'RMSEStats')
+	#createFeature(zeroCrossingMFCC,'zeroMFCC')
+	#createFeature(waveStats,'waveStats')
+	#createFeature(harmonicPercussiveSumStats,'HPsumStats')
+	#createFeature(spectralRollStats,'spectralRollStats') 
+	#createFeature(chromaData,'chromaData') 
+	#createFeature(getF3,'zeroCrossSumStats')
+	#createFeature(harmonicPercussiveMFCC,'HPMFCC')
+	#createFeature(spectralCentroidStats,'centroidStats')
+	#createFeature(centroid,'centroid')
+	#createFeature(flatChroma,'flatChroma')
+	#createFeature(omfcc,'omfcc')
 	
-	#print len(outputDataset)
-	listToCSV(outputDataset,'allFeatures.csv')
+	#createFeature(smoothCrossZero,'smoothC')
+	#createFeature(crossZero,'crossZR')
+	
+	createFeature(smoothCrossZero,'smoothC')
+	createFeature(smoothCrossZero,'smoothC')
+
+	print "HEHE"
+
+
+def printTest(classifier,features,normalize,PCA,PCA_components):
+	bdata = loadValidationFS(features,normalize,PCA,PCA_components)
+	print "ACCURACY - "+str(classifier)
+	foldsResult = kfoldsTest(classifier,10,bdata)
+	a = map(keyToGenre,foldsResult[0]['truth'],) 
+	b = map(keyToGenre,foldsResult[0]['predictions'])
+	print foldsResult[1]
+	plot_confusion_matrix(confusion_matrix(a,b),genres().keys(),normalize=True)
+	plt.show()
+
+	print ''
 
 
 def crossValidate():
-	#data = "onlyf2feature.csv"
-	data = "allFeatures.csv"
-	#data = "f2feature.csv"
-	#classifier = testClassifier
+
+	#starting features 
+	basicData = ['justMFCC','basicFFT']
+
+
+	# creates confusion matricies and runs 10 fold validation: 
 	
-	classifier = LG
-	#classifier = SVM
+	#support vector machine, no normalization or PCA 
+	#printTest(SVM,basicData,False,False,1000)	
+	
+	#logistic regression, no normalization or PCA
+	#printTest(LG,basicData,False,False,1000)
 
-	#classifier = RF
-	#classifier = LN
+	#support vector machine, no normalization or PCA 
+	#printTest(SVM,basicData,True,False,1000)	
 
-	#print "ACCURACY",kfoldsTest(classifier,10,data)
-	print "ACCURACY",kfoldsTest(classifier,10,data)
+	#logistic regression, with normalization or PCA
+	#printTest(LG,basicData,True,False,1000)
+
+
+	#added centroid stats, third feature
+	#'basicFFT',
+	newFeatures = ['justMFCC','centroidStats','HPsumStats','centroidStats'] #,'centroidStats'
+
+	#support vector machine, no normalization or PCA 
+	#printTest(SVM,newFeatures,False,False,1000)	
+	
+	#logistic regression, no normalization or PCA
+	#printTest(LG,newFeatures,False,False,1000)
+
+	#support vector machine, no normalization or PCA 
+	#printTest(SVM,newFeatures,True,False,1000)	
+
+	#logistic regression, with normalization or PCA
+	#printTest(LG,newFeatures,True,False,1000)
+
+	#optimal score 
+	newFeatures = ['justMFCC','centroidStats'] #  'HPsumStats','zeroCrossSumStats','waveStats','spectralRollStats','onsetStats'] #,'centroidStats'
+	#support vector machine, no normalization or PCA 
+	printTest(SVM,newFeatures,True,False,1000)	
+	#printTest(LG,newFeatures,True,False,1000)	
+
+
+	#SET WITH NORMALIZATION
+	#printTest(SVM,basicData,True,False,1000) #.50 (way better than the SVM in this regard )
+	#printTest(LG,basicData,True,False,1000)  #.35 (ALMOST A PERFECT HIPHOP!!!)
+	# gets about a .50 
+
+	#SET WITH NEW FEATURE? 
+
+	# all seem to love centroidStats
+
+	# basicData = ['justMFCC','centroidStats']
+	# printTest(SVM,basicData,True,False,1000)
+
+	# basicData = ['justMFCC','centroidStats','HPsumStats']
+	# printTest(SVM,basicData,True,False,1000)
+
+	# basicData = ['justMFCC','centroidStats','HPsumStats','zeroCrossSumStats','waveStats','spectralRollStats']
+	# printTest(SVM,basicData,True,False,1000)
+
+	# basicData = ['justMFCC','centroidStats','HPsumStats','zeroCrossSumStats','waveStats','spectralRollStats','onsetStats']
+	# printTest(SVM,basicData,True,False,1000)
+
+	# basicData = ['smoothC','crossZR','justMFCC','centroidStats','HPsumStats','zeroCrossSumStats','waveStats','spectralRollStats','onsetStats']
+	# printTest(SVM,basicData,True,False,1000)
+
+	#centroidStats - did LG Get worse with the new feature? 
+	#,feature ... comes it at about 44~
+	# regular LG... about 0.40 vs 0.44 
+
+	#customFeatures = ['smoothC','crossZR','justMFCC','omfcc','tempo','centroidStats','HPsumStats','zeroCrossSumStats','waveStats','spectralRollStats','onsetStats']
+	
+	#for feature in customFeatures:
+	#	print feature
+	#	printTest(LG,['justMFCC','basicFFT'],True,False,1000)	
+
+	#newfeature = 
+	#printTest(SVM,basicData,True,False,1000)
+	#printTest(SVM,basicData,True,False,1000)
+
+	#smoothC crossZR
+	#collectiveFeatures = ['justMFCC','omfcc','tempo','centroidStats','HPsumStats','zeroCrossSumStats','waveStats','spectralRollStats','onsetStats']
+	#printTest(SVM,['justMFCC','basicFFT','HPsumStats','tempo','centroidStats'],True,True,1000)
+	#printTest(GNB,['justMFCC','HPsumStats'],True,False,500)
+	#'justMFCC','basicFFT','HPsumStats','tempo','centroidStats'
+	#printTest(SVM,['onsetStats','HPsumStats','zeroCrossSumStats','justMFCC','waveStats','spectralRollStats'],True,False,1000)
+	#printTest(GNB,['justMFCC'],True,False,500) #,'HPsumStats'
+	#printTest(LG,['smoothC','onsetStats','HPsumStats','zeroCrossSumStats','spectralRollStats'],True,False,500)
+
 
 def kaggle():
-	#createValidation()
-	train = readCSVToDF('onlyf2feature.csv')
-	test = readCSVToDF('testFeatures.csv')
+	
+	#train = readCSVToDF('onlyf2feature.csv')
+	#secondSubmission 
+	#loadValidationFS(['onsetStats','HPsumStats','zeroCrossSumStats','justMFCC','waveStats','spectralRollStats'],True,False,30)
 
+	featuresSVM = ['onsetStats','HPsumStats','zeroCrossSumStats','justMFCC','waveStats','spectralRollStats']
+	featuresGNB = ['spectralRollStats','RMSEStats','onsetStats','zeroCrossSumStats']
+	featuresLG = ['onsetStats','HPsumStats','zeroCrossSumStats','spectralRollStats']
+
+	
+	features = featuresSVM
+
+	normalize = True
+	PCA = False
+	PCA_components = 2
+
+	train = loadValidationFS(features,normalize,PCA,PCA_components)
+	test = loadSubmissionFS(features,normalize,PCA,PCA_components)
+	
+	print len(train)
+	print len(test),test.shape
 	#normalize these guys 
+	
+	#data = loadValidationFS(['zeroCrossSumStats','justMFCC','waveStats'],True,False,120)
 
-	for i in train.columns.values:
-	  	if i != 'Class':
-	  		train[i] = ( train[i] - sum(train[i])/len(train) ) / np.std(train[i])
-	
-	for i in test.columns.values:
-	  	if i != 'id':
-	  		test[i] = ( test[i] - sum(test[i])/len(test) ) / np.std(test[i])
-	
 	test["prediction"] = 0
-	test = LG(train,test)
+	test = SVM(train,test)
+	#test = testClassifier(train,test)
 	predictionList = test['prediction'].tolist() #keyToGenre(test['prediction'])
 	
 	genres = []
 	for k in predictionList:
 		genres.append(keyToGenre(k))
 
-
 	test['class'] = genres
 	test = test[["id","class"]]
 
-	print test
-
 	#print keyToGenre(list(test.iloc[3])[14])
-	test.to_csv('kaggleSub.csv',index = False)
+	test.to_csv('kagglesLSVM.csv',index = False)
 
 
 def practice():
+
+	basicData = ['justMFCC','centroidStats']
+	printTest(SVM,basicData,True,False,1000)
+
+	basicData = ['justMFCC','centroidStats','HPsumStats']
+	printTest(SVM,basicData,True,False,1000)
+
+	basicData = ['justMFCC','centroidStats','HPsumStats','zeroCrossSumStats','waveStats','spectralRollStats']
+	printTest(SVM,basicData,True,False,1000)
+
+	basicData = ['justMFCC','centroidStats','HPsumStats','zeroCrossSumStats','waveStats','spectralRollStats','onsetStats']
+	printTest(SVM,basicData,True,False,1000)
+
+	basicData = ['smoothC','crossZR','justMFCC','centroidStats','HPsumStats','zeroCrossSumStats','waveStats','spectralRollStats','onsetStats']
+	printTest(SVM,basicData,True,False,1000)
+
+	#centroidStats - did LG Get worse with the new feature? 
+	#,feature ... comes it at about 44~
+	# regular LG... about 0.40 vs 0.44 
+
+	#customFeatures = ['smoothC','crossZR','justMFCC','omfcc','tempo','centroidStats','HPsumStats','zeroCrossSumStats','waveStats','spectralRollStats','onsetStats']
+	
+	#for feature in customFeatures:
+	#	print feature
+	#	printTest(LG,['justMFCC','basicFFT'],True,False,1000)	
+
+	#newfeature = 
+	#printTest(SVM,basicData,True,False,1000)
+	#printTest(SVM,basicData,True,False,1000)
+
+	#smoothC crossZR
+	#collectiveFeatures = ['justMFCC','omfcc','tempo','centroidStats','HPsumStats','zeroCrossSumStats','waveStats','spectralRollStats','onsetStats']
+	#printTest(SVM,['justMFCC','basicFFT','HPsumStats','tempo','centroidStats'],True,True,1000)
+	#printTest(GNB,['justMFCC','HPsumStats'],True,False,500)
+	#'justMFCC','basicFFT','HPsumStats','tempo','centroidStats'
+	#printTest(SVM,['onsetStats','HPsumStats','zeroCrossSumStats','justMFCC','waveStats','spectralRollStats'],True,False,1000)
+	#printTest(GNB,['justMFCC'],True,False,500) #,'HPsumStats'
+	#printTest(LG,['smoothC','onsetStats','HPsumStats','zeroCrossSumStats','spectralRollStats'],True,False,500)
+
+
+
+	#zeroMFCC might have helped naive beyes
+	# bdata = loadValidationFS(collectiveFeatures,True,False,120)
+	# #0.119637385087
+	# classifier = GNB
+	# print "ACCURACY - GNB"
+	# foldsResult = kfoldsTest(classifier,10,bdata,True)
+	# print ''
+	#print confusion_matrix(foldsResult[0]['truth'],foldsResult[0]['predictions']),foldsResult[1]
+
+	a = map(keyToGenre,foldsResult[0]['truth'],) 
+	b = map(keyToGenre,foldsResult[0]['predictions'])
+
+	plot_confusion_matrix(confusion_matrix(a,b),genres().keys())
+	plt.show()
+	
+	data = loadValidationFS(collectiveFeatures,True,True,40)  
+	classifier = SVM
+	print "ACCURACY - SVM"
+	print kfoldsTest(classifier,10,data)
+	print ''
+
+	return 
+
+	classifier = LG
+	print "ACCURACY - LG"
+	ldata = loadValidationFS(collectiveFeatures,True,False,120)
+
+	#print kfoldsTest(classifier,10,ldata)
+	print ''
+	print ''
+
+	data = loadValidationFS(['onsetStats','HPsumStats','zeroCrossSumStats','justMFCC','waveStats','spectralRollStats'],True,False,120)
+	#0.119637385087
+	classifier = GNB
+	print "BEST test ACCURACY - GNB"
+	print kfoldsTest(classifier,10,data)	
+
+	#BEST 
+	data = loadValidationFS(['onsetStats','HPsumStats','zeroCrossSumStats','justMFCC','waveStats','spectralRollStats'],True,False,600)
+	classifier = SVM
+	print "BEST test ACCURACY - SVM"
+	print kfoldsTest(classifier,10,data)
+	print ''
+
+	#BEST
+	#data = loadValidationFS(['zeroCrossSumStats','justMFCC','waveStats'],True,False,120)
+	data = loadValidationFS(['onsetStats','HPsumStats','zeroCrossSumStats','justMFCC','waveStats','spectralRollStats'],True,False,120)
+	classifier = LG
+	print "BEST test ACCURACY - LG"
+	#print kfoldsTest(classifier,10,data)
+	print ''
+	print ''
+
+	test = False
+
+	##justMFCC, zeroCrossSumStats basicFFT zeroMFCC waveStats spectralRoll spectralRollStats
+	if test:
+		classifier = SVM
+		for i in range(1,48,4):
+			#'basicFFT','basicFFT'			
+			print "SVM test'",i
+			#featureSet = ['RMSEStats','spectralRoll','basicFFT','zeroMFCC','HPsumStats','zeroCrossSumStats','justMFCC','waveStats','spectralRollStats']
+			#featureSet = ['zeroCrossSumStats']
+			featureSet = ['justMFCC','RMSEStats','onsetStats','HPsumStats','zeroCrossSumStats','waveStats','spectralRollStats']
+			data = loadValidationFS(featureSet,True,True,47) # True True 47 is doing better than the regular 
+			print kfoldsTest(classifier,10,data)
+
+			data = loadValidationFS(featureSet,True,True,i) # True True 47 is doing better than the regular 
+			print kfoldsTest(classifier,10,data)
+
+			#basicFFT
+
+
 	print "Hey"
+	# n_samples, n_features = 10, 5
+	# y = np.random.randn(n_samples)
+	# X = np.random.randn(n_samples, n_features)
+
+	# clf = linear_model.Lasso(alpha=0.1)
+	# clf.fit([[0,0], [1, 1], [2, 2]], [0, 1, 2])
+	# print clf.predict([[2, 2],[1,1],[0,0]])
+
+	X = np.array([[-1, -1], [-2, -1], [-3, -2], [1, 1], [2, 1], [3, 2]])
+	pca = PCA(n_components=1)
+	pca.fit(X) 
+	X = pca.transform(X)
+	print X
+
 	#Classes	3
 	#Samples per class	50
 	#Samples total	150
@@ -242,3 +433,28 @@ def practice():
 	#Z = logreg.predict(np.c_[xx.ravel(), yy.ravel()])
 
 
+	#a = readCSVToDF('spectralRoll.csv')
+	# justMFCC, zeroCrossSumStats basicFFT zeroMFCC waveStats spectralRoll spectralRollStats chroma data
+	#'RMSE','RMSEStats','onsetStats','HPsumStats','zeroCrossSumStats','justMFCC','waveStats','spectralRollStats'
+	#'justMFCC','justMFCC' spectralRollStats
+	# spectralRollStats yes
+	# onsetStats yes
+	# waveStats meh
+	# yes zeroCrossSumStats
+	# 'HPsumStats'
+	#'justMFCC',
+	#collectiveFeatures = ['centroid','centroidStats','HPMFCC','justMFCC','HPsumStats','zeroCrossSumStats','waveStats','spectralRollStats','onsetStats']
+	#collectiveFeatures = ['flatChroma','centroidStats','justMFCC','HPsumStats','zeroCrossSumStats','waveStats','spectralRollStats','onsetStats']
+	#'justMFCC',
+	#'flatChroma',
+	#'HPMFCC',#
+
+
+	# wow, with just MFCC...we reach 0.5 
+	# this is really good HPsumStats + 1.5 vs wave stats 
+	# the last 4 features aren't too powerful, we'll focus on HP sum stats
+	#'HPsumStats','zeroCrossSumStats','waveStats','spectralRollStats'
+	# HPsumStats is pretty good...spectralRollStats zero cross and regular wave are meh
+	#zero cross/wave may be similar
+	#,'justMFCC'
+	#'onsetStats', small help
