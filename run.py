@@ -4,7 +4,6 @@ from validation import *
 from classifier import *
 import numpy as np
 import math
-
 from sklearn import svm
 from sklearn.decomposition import PCA
 
@@ -106,8 +105,16 @@ def printTest(classifier,features,normalize,PCA,PCA_components):
 def crossValidate():
 
 	#starting features 
-	basicData = ['justMFCC','basicFFT']
+	#basicData = ['justMFCC']
+	#for i in range(1,1000,20):
+		#printTest(SVM,['basicFFT'],True,True,i)	
+	
+	#printTest(LG,['basicFFT','centroidStats'],True,False,1000)	
+	#printTest(SVM,['basicFFT','centroidStats'],True,False,1000)
+	#,'HPsumStats','zeroCrossSumStats'
 
+	#lets use HPSumStates and centroid stats 
+	printTest(SVM,['justMFCC','centroidStats'],True,False,1000)	
 
 	# creates confusion matricies and runs 10 fold validation: 
 	
@@ -126,7 +133,7 @@ def crossValidate():
 
 	#added centroid stats, third feature
 	#'basicFFT',
-	newFeatures = ['justMFCC','centroidStats','HPsumStats','centroidStats'] #,'centroidStats'
+	#newFeatures = ['justMFCC','centroidStats','HPsumStats','centroidStats'] #,'centroidStats'
 
 	#support vector machine, no normalization or PCA 
 	#printTest(SVM,newFeatures,False,False,1000)	
@@ -141,9 +148,9 @@ def crossValidate():
 	#printTest(LG,newFeatures,True,False,1000)
 
 	#optimal score 
-	newFeatures = ['justMFCC','centroidStats'] #  'HPsumStats','zeroCrossSumStats','waveStats','spectralRollStats','onsetStats'] #,'centroidStats'
+	#newFeatures = ['justMFCC','centroidStats'] #  'HPsumStats','zeroCrossSumStats','waveStats','spectralRollStats','onsetStats'] #,'centroidStats'
 	#support vector machine, no normalization or PCA 
-	printTest(SVM,newFeatures,True,False,1000)	
+	#printTest(SVM,newFeatures,True,False,1000)	
 	#printTest(LG,newFeatures,True,False,1000)	
 
 
@@ -188,7 +195,7 @@ def crossValidate():
 	#smoothC crossZR
 	#collectiveFeatures = ['justMFCC','omfcc','tempo','centroidStats','HPsumStats','zeroCrossSumStats','waveStats','spectralRollStats','onsetStats']
 	#printTest(SVM,['justMFCC','basicFFT','HPsumStats','tempo','centroidStats'],True,True,1000)
-	#printTest(GNB,['justMFCC','HPsumStats'],True,False,500)
+	#printTest(GNB,['justMFCC','onsetStats','HPsumStats','zeroCrossSumStats','spectralRollStats'],True,True,38)
 	#'justMFCC','basicFFT','HPsumStats','tempo','centroidStats'
 	#printTest(SVM,['onsetStats','HPsumStats','zeroCrossSumStats','justMFCC','waveStats','spectralRollStats'],True,False,1000)
 	#printTest(GNB,['justMFCC'],True,False,500) #,'HPsumStats'
@@ -201,10 +208,13 @@ def kaggle():
 	#secondSubmission 
 	#loadValidationFS(['onsetStats','HPsumStats','zeroCrossSumStats','justMFCC','waveStats','spectralRollStats'],True,False,30)
 
-	featuresSVM = ['onsetStats','HPsumStats','zeroCrossSumStats','justMFCC','waveStats','spectralRollStats']
+	#featuresSVM = ['justMFCC','centroidStats','HPsumStats','zeroCrossSumStats','waveStats','spectralRollStats','onsetStats']
+	featuresSVM = ['justMFCC','centroidStats'] 
 	featuresGNB = ['spectralRollStats','RMSEStats','onsetStats','zeroCrossSumStats']
-	featuresLG = ['onsetStats','HPsumStats','zeroCrossSumStats','spectralRollStats']
+	featuresLG = ['onsetStats','HPsumStats','zeroCrossSumStats','justMFCC','waveStats','spectralRollStats']
 
+	#basicData = ['onsetStats','HPsumStats','zeroCrossSumStats','justMFCC','waveStats','spectralRollStats']
+	#printTest(LG,basicData,True,False,1000)
 	
 	features = featuresSVM
 
@@ -222,7 +232,7 @@ def kaggle():
 	#data = loadValidationFS(['zeroCrossSumStats','justMFCC','waveStats'],True,False,120)
 
 	test["prediction"] = 0
-	test = SVM(train,test)
+	test = LG(train,test)
 	#test = testClassifier(train,test)
 	predictionList = test['prediction'].tolist() #keyToGenre(test['prediction'])
 	
@@ -234,25 +244,36 @@ def kaggle():
 	test = test[["id","class"]]
 
 	#print keyToGenre(list(test.iloc[3])[14])
-	test.to_csv('kagglesLSVM.csv',index = False)
+	test.to_csv('LGl.csv',index = False)
 
 
 def practice():
 
-	basicData = ['justMFCC','centroidStats']
-	printTest(SVM,basicData,True,False,1000)
+	# basicData = ['justMFCC','centroidStats']
+	# printTest(SVM,basicData,True,False,1000)
 
-	basicData = ['justMFCC','centroidStats','HPsumStats']
-	printTest(SVM,basicData,True,False,1000)
+	# basicData = ['justMFCC','centroidStats','HPsumStats']
+	# printTest(SVM,basicData,True,False,1000)
 
-	basicData = ['justMFCC','centroidStats','HPsumStats','zeroCrossSumStats','waveStats','spectralRollStats']
-	printTest(SVM,basicData,True,False,1000)
+	# basicData = ['justMFCC','centroidStats','HPsumStats','zeroCrossSumStats','waveStats','spectralRollStats']
+	# printTest(SVM,basicData,True,False,1000)
 
 	basicData = ['justMFCC','centroidStats','HPsumStats','zeroCrossSumStats','waveStats','spectralRollStats','onsetStats']
-	printTest(SVM,basicData,True,False,1000)
+	printTest(GNB,basicData,True,False,1000)
 
-	basicData = ['smoothC','crossZR','justMFCC','centroidStats','HPsumStats','zeroCrossSumStats','waveStats','spectralRollStats','onsetStats']
-	printTest(SVM,basicData,True,False,1000)
+	# basicData = ['onsetStats','HPsumStats','zeroCrossSumStats','justMFCC','waveStats','spectralRollStats']
+	# printTest(SVM,basicData,True,False,1000)
+
+	basicData = ['onsetStats','HPsumStats','zeroCrossSumStats','justMFCC','waveStats','spectralRollStats']
+	printTest(LG,basicData,True,False,1000)
+
+
+	#basicData = ['smoothC','crossZR','justMFCC','centroidStats','HPsumStats','zeroCrossSumStats','waveStats','spectralRollStats','onsetStats']
+	#printTest(SVM,basicData,True,False,1000)
+
+
+
+	return 
 
 	#centroidStats - did LG Get worse with the new feature? 
 	#,feature ... comes it at about 44~

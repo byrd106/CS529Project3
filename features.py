@@ -258,17 +258,9 @@ def loadValidationFS(featureSet,normalize=False,PCA=False,PCA_N=0):
 		for i in df.columns.values:
 
 	  		if i != 'Class':
-	  			if np.std(df[i]) == 0:
-	  				#raise Exception('One column has 0 STD in your features!!')
-	  				#np.std(df[i]) = np.std(df[i])+0.0001
+	  			if np.std(df[i]) == 0:	  			
 	  				df[i] = ( df[i] - sum(df[i])/len(df) ) / 0.0001
 	  			else:	  				
-	  				#df[i] = 1
-	  				#print i,sum(df[i]),len(df)
-	  				#average = sum(df[i])/len(df)
-	  				#print len(df)
-	  				#print average
-
 	  				df[i] = ( df[i] - sum(df[i])/len(df) ) / (np.std(df[i]))
 
 	if PCA:

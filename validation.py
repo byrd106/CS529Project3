@@ -80,11 +80,11 @@ def calculateAccuracy(data):
 
 
 
-def heatmap(df, dict):
-	fig, ax = plt.subplots()
-	fig.subplots_adjust(left=0.3)
-	#im = ax.imshow(df, interpolation='nearest', cmap=plt.cm.ocean)
-	print fig
+# def heatmap(df, dict):
+# 	fig, ax = plt.subplots()
+# 	fig.subplots_adjust(left=0.3)
+# 	#im = ax.imshow(df, interpolation='nearest', cmap=plt.cm.ocean)
+# 	print fig
 
 
 def plot_confusion_matrix(cm, classes,
