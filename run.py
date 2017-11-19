@@ -38,8 +38,10 @@ def program():
 
 def createFeatures():
 
-	#createFeature(harmonicPercussiveSumStats,'HPsumStats')
-	#createFeature(spectralCentroidStats,'centroidStats')
+	createFeature(FFTComponents,'FFT')
+	createFeature(createMFCC,'MFCC')
+	createFeature(harmonicPercussiveSumStats,'HPsumStats')
+	createFeature(spectralCentroidStats,'centroidStats')
 
 
 
@@ -47,6 +49,13 @@ def createFeatures():
 
 def crossValidate():
 
+	printTest(SVM,['FFT','centroidStats','HPsumStats'],True,False,1000)	
+	printTest(LG,['FFT','centroidStats','HPsumStats'],True,False,1000)	
+	#printTest(SVM,['justMFCC','centroidStats'],True,False,1000)	
+	#printTest(SVM,['justMFCC','centroidStats'],True,False,1000)	
+	#printTest(SVM,['justMFCC','centroidStats'],True,False,1000)	
+	#printTest(SVM,['justMFCC','centroidStats'],True,False,1000)	
+	
 	# one test w/ each feature 
 	# for FFT  SVM 
 	# for MFF	SVM 
@@ -59,7 +68,6 @@ def crossValidate():
 
 
 ###### kaggle - will load all features specified and genereate a kaggle submission 
-
 def kaggle():
 
 	featuresSVM = ['justMFCC','centroidStats'] 	

@@ -9,7 +9,8 @@ from fileOperations import *
 import random
 from sklearn import decomposition
 from scipy import signal
-from python_speech_features import mfcc
+#from python_speech_features import mfcc
+from scikits.talkbox.features import mfcc
 from python_speech_features import logfbank
 import scipy.io.wavfile as wav
 
@@ -20,10 +21,10 @@ def FFTComponents(data):
 	data = abs(scipy.fft(data)[:1000])
 	return data
 
-###### MFCC 
+###### createMFCC 
 #	- gets the mfccs of audio data, and averages these across frames and returns the range from 10% to 90%
 #   -- data - audio data of a single au file
-def MFCC(data):
+def createMFCC(data):
 	ceps, mspec, spec = mfcc(data)
 	num_ceps = len(ceps)
 	reducedCeps = ceps[int(num_ceps*0.10):int(num_ceps*0.90)]
@@ -65,7 +66,7 @@ def createFeature(featureFunction,name):
 		for row in dataset[key]:
 			data = [666,667] # these 2 files seem to have an issue w/ their data so we'll skip them for now 
 			if count not in data:
-				row = np.append(featureFunction(readAUFile(FILE_PATH+key+"/"+row)),mapKeyToInt(key))
+				row = np.append(featureFunction(readAUFile(FILE_PATH+key+"/"+row)),mapGenreToInt(key))
 				if math.isnan(float(row[1])):
 					print count
 				else:
@@ -83,7 +84,7 @@ def createFeature(featureFunction,name):
 #   featureFunction - a function which will genreate the desired feature
 #	name - a designation for this feature, which is how it will be called in validation experiments, and the name of the file this outputs
 def createTestDataFeatureCopy(featureFunction,name):
-	FILE_PATH = "rename/"
+	FILE_PATH = "test/"
 	testData = os.listdir(FILE_PATH)
 	results = []
 	first = True
@@ -124,7 +125,7 @@ def keyToGenre(key):
 ###### mapGenreToInt - given a genre, get a numeric value for this genre from the genres dictionary
 def mapGenreToInt(key):
 	genreData = genres()
-	return genresData[key]
+	return genreData[key]
 
 
 ###### loadValidationFS 
