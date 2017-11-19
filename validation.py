@@ -27,8 +27,6 @@ def kfoldsTest(classifier,k,data):
 
 	datalength = len(data)
 
-	print " ==== ==== ==== ==== ==== ==== "
-
 	indexList = range(0,datalength)
 	foldSize = datalength/k
 

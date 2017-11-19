@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 from sklearn import linear_model, datasets
 
 #  if true - build features
-features = False
+features = True
 
 # if true - run set of validation tests 
 validation = True
@@ -49,21 +49,40 @@ def createFeatures():
 
 def crossValidate():
 
+	print "This script may take some time, after each test is run, a score will be output, and a confusion matrix will display"
+	
+	printTest(SVM,['MFCC'],True,False,1000)	
+	printTest(LG,['MFCC'],True,False,1000)	
+
+	return 
+
+	# best result 
+	printTest(SVM,['MFCC','centroidStats','HPsumStats'],True,False,1000)	
+	printTest(LG,['MFCC','centroidStats','HPsumStats'],True,False,1000)	
+
+	# all features 
+	printTest(SVM,['FFT','MFCC','centroidStats','HPsumStats'],True,False,1000)	
+	printTest(LG,['FFT','MFCC','centroidStats','HPsumStats'],True,False,1000)	
+	
+	# FFT and MFCC used 
+	printTest(SVM,['FFT','MFCC'],True,False,1000)	
+	printTest(LG,['FFT','MFCC'],True,False,1000)	
+	
+	# FTT + F3 
 	printTest(SVM,['FFT','centroidStats','HPsumStats'],True,False,1000)	
 	printTest(LG,['FFT','centroidStats','HPsumStats'],True,False,1000)	
-	#printTest(SVM,['justMFCC','centroidStats'],True,False,1000)	
-	#printTest(SVM,['justMFCC','centroidStats'],True,False,1000)	
-	#printTest(SVM,['justMFCC','centroidStats'],True,False,1000)	
-	#printTest(SVM,['justMFCC','centroidStats'],True,False,1000)	
-	
-	# one test w/ each feature 
-	# for FFT  SVM 
-	# for MFF	SVM 
-	# one F3 	SVM 
 
-	# one with each different combo of these, all normalized  
-	#lets use HPSumStates and centroid stats 
-	#printTest(SVM,['justMFCC','centroidStats'],True,False,1000)	
+	# FFT
+	printTest(SVM,['FFT'],True,False,1000)	
+	printTest(LG,['FFT'],True,False,1000)	
+
+	# MFCC
+	printTest(SVM,['MFCC'],True,False,1000)	
+	printTest(LG,['MFCC'],True,False,1000)	
+
+	# just F3 
+	printTest(SVM,['centroidStats','HPsumStats'],True,False,1000)	
+	printTest(LG,['centroidStats','HPsumStats'],True,False,1000)		
 
 
 
@@ -103,7 +122,8 @@ def kaggle():
 
 def printTest(classifier,features,normalize,PCA,PCA_components):
 	bdata = loadValidationFS(features,normalize,PCA,PCA_components)
-	print "ACCURACY - "+str(classifier)
+	print "FEATURES: - "+str(features)
+	print "ACCURACY FROM "+str(classifier)
 	foldsResult = kfoldsTest(classifier,10,bdata)
 	a = map(keyToGenre,foldsResult[0]['truth'],) 
 	b = map(keyToGenre,foldsResult[0]['predictions'])

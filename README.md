@@ -9,6 +9,10 @@ The code structure is split across a few key files
 - run.py = has data related to running the script 
 - launch.py = runs the launcher script 
 
+When the code is run, the features for test and training sets will be generated, this will create new csv files for each of these features. 
+
+This script may take about 30 minutes to run, because building the features (mainly FFTs) takes a long time.
+
 
 to run the project and display testing results run: 
 
